@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../public/header.css">
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: white;
+            display: flex;
+        }
+
+        .content {
+            margin-left: 270px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #2a2a2a;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #007bff;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        #summaryChart {
+            width: 100% !important;
+            height: 400px !important;
+            max-height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header-container"></div>
+    <div class="container mt-4">
+        <!-- Phần 1: Hiển thị thông số cảm biến -->
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Nhiệt độ</h5>
+                    <h2 id="tempValue"></h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Độ ẩm</h5>
+                    <h2 id="humidityValue"></h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Cường độ ánh sáng</h5>
+                    <h2 id="lightValue"></h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ tổng hợp -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card p-3">
+                    <h5>Biểu đồ nhiệt độ, độ ẩm & cường độ ánh sáng</h5>
+                    <canvas id="summaryChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần 2: Nút bật/tắt thiết bị -->
+        <div class="row mt-4" id="deviceControls">
+        </div>
+    </div>
+
+    <script>
+        // Load header.html vào div #header-container
+        fetch("../public/header.html")  // Đảm bảo đường dẫn đúng
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("header-container").innerHTML = data;
+
+                // Thực thi các script bên trong header.html nếu có
+                let scripts = document.getElementById("header-container").getElementsByTagName("script");
+                for (let script of scripts) {
+                    eval(script.innerText);
+                }
+            });
+    </script>
+    <script>
+        async function loadDevices() {
+            console.log(document.getElementById("deviceControls"));
+            let response = await fetch("../api/get_devices.php");
+            let data = await response.json();
+
+            let deviceContainer = document.getElementById("deviceControls");
+            deviceContainer.innerHTML = ""; // Xóa danh sách cũ trước khi load lại
+
+            data.forEach(device => {
+                let checked = device.status == 1 ? "checked" : "";
+                let col = document.createElement("div");
+                col.className = "col-md-3";
+                col.innerHTML = `
+            <div class="card p-3 text-center">
+                <h5>${device.name}</h5>
+                <label class="switch">
+                    <input type="checkbox" class="toggle" data-id="${device.id}" ${checked}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        `;
+                deviceContainer.appendChild(col);
+            });
+
+            // Gắn sự kiện bật/tắt sau khi load xong thiết bị
+            document.querySelectorAll(".toggle").forEach(button => {
+                button.addEventListener("change", async function () {
+                    let deviceId = this.getAttribute("data-id");
+                    let status = this.checked ? 1 : 0;
+
+                    let response = await fetch("../api/toggle_device.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: `device_id=${deviceId}&status=${status}`
+                    });
+
+                    let result = await response.json();
+                    if (!result.success) {
+                        alert("Lỗi khi cập nhật thiết bị!");
+                    }
+                });
+            });
+        }
+
+        // Gọi hàm khi trang được tải
+        loadDevices();
+
+    </script>
+    <script>
+        async function fetchSensorData() {
+            try {
+                let response = await fetch("../api/get_sensor.php");
+                let responseData = await response.json();
+
+                if (!responseData.latest || responseData.data.length === 0) {
+                    console.warn("Không có dữ liệu cảm biến!");
+                    return;
+                }
+
+                let latest = responseData.latest; // Lấy dữ liệu mới nhất
+                document.getElementById("tempValue").textContent = latest.temperature + "°C";
+                document.getElementById("humidityValue").textContent = latest.humidity + "%";
+                document.getElementById("lightValue").textContent = latest.light + " lx";
+
+                updateChart(responseData.data); // Cập nhật biểu đồ với toàn bộ dữ liệu
+            } catch (error) {
+                console.error("Lỗi khi tải dữ liệu cảm biến: ", error);
+            }
+        }
+
+
+        // Cập nhật biểu đồ
+        async function fetchData() {
+            try {
+                const response = await fetch('../api/chart_data.php');
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    console.warn("Dữ liệu biểu đồ rỗng hoặc không hợp lệ");
+                    return;
+                }
+
+
+                // Tách dữ liệu cho biểu đồ
+                const labels = data.map(row => row.timestamp);  // Nhãn thời gian
+                const tempData = data.map(row => row.temperature); // Dữ liệu nhiệt độ
+                const humidityData = data.map(row => row.humidity); // Dữ liệu độ ẩm
+                const lightData = data.map(row => row.light);
+
+                updateChart(labels, tempData, humidityData, lightData);
+            } catch (error) {
+                console.error('Lỗi tải dữ liệu:', error);
+            }
+        }
+
+        let chartInstance = null;
+
+        function updateChart(labels, tempData, humidityData, lightData) {
+            const ctx = document.getElementById('summaryChart').getContext('2d');
+
+            // Kiểm tra nếu có biểu đồ cũ, thì hủy nó trước khi tạo mới
+            if (chartInstance !== null) {
+                chartInstance.destroy();
+                chartInstance = null; // Đặt lại biến để đảm bảo không còn tham chiếu
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Nhiệt độ (°C)',
+                            data: tempData,
+                            borderColor: 'red',
+                            backgroundColor: 'rgba(255, 0, 0, 0.2)',
+                            fill: true
+                        },
+                        {
+                            label: 'Độ ẩm (%)',
+                            data: humidityData,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                            fill: true
+                        },
+                        {
+                            label: 'Ánh sáng (lx)',
+                            data: lightData,
+                            borderColor: 'yellow',
+                            backgroundColor: 'rgba(255, 255, 0, 0.2)',
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { title: { display: true, text: 'Thời gian' } },
+                        y: { title: { display: true, text: 'Giá trị' } }
+                    }
+                }
+            });
+        }
+        fetchSensorData(); 
+        fetchData();
+        setInterval(fetchData, 5000);
+       // Gọi lần đầu ngay khi trang tải
+    </script>
+</body>
+
+</html>

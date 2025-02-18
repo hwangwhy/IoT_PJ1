@@ -1,0 +1,20 @@
+<!-- header.html -->
+<div class="sidebar">
+    <a href="index.html" id="home">🏠 Trang Chủ</a>
+    <a href="history.html" id="history">📜 Lịch Sử Thao Tác</a>
+    <a href="data.html" id="data">📊 Dữ Liệu Cảm Biến</a>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let currentPath = window.location.pathname.split("/").pop();
+        let menuItems = {
+            "index.html": "home",
+            "history.html": "history",
+            "data.html": "data"
+        };
+        if (menuItems[currentPath]) {
+            document.getElementById(menuItems[currentPath]).classList.add("active");
+        }
+    });
+</script>
