@@ -44,9 +44,11 @@
             color: white;
             border-radius: 4px;
         }
+
         .dataTables_paginate {
-        display: none !important; /* ✅ Ẩn phân trang */
-    }
+            display: none !important;
+            /* ✅ Ẩn phân trang */
+        }
     </style>
 </head>
 
@@ -59,24 +61,31 @@
                 <div class="col-md-4">
                     <input type="text" id="searchKeyword" class="form-control" placeholder="Nhập từ khóa">
                 </div>
+                <div class="col-md-3">
+                    <input type="date" id="startDate" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" id="endDate" class="form-control">
+                </div>
                 <div class="col-md-2">
-                    <button class="btn btn-primary" onclick="filterTable()">Tìm kiếm</button>
+                    <button class="btn btn-primary w-100" onclick="loadSensorData(1)">Tìm kiếm</button>
                 </div>
             </div>
-            <table id="sensorTable" class="table table-dark table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nhiệt Độ</th>
-                        <th>Độ Ẩm</th>
-                        <th>Ánh Sáng</th>
-                        <th>Thời Gian</th>
-                    </tr>
-                </thead>
-                <tbody id="sensorData"></tbody>
-            </table>
-            <div class="pagination" id="pagination"></div>
         </div>
+        <table id="sensorTable" class="table table-dark table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nhiệt Độ</th>
+                    <th>Độ Ẩm</th>
+                    <th>Ánh Sáng</th>
+                    <th>Thời Gian</th>
+                </tr>
+            </thead>
+            <tbody id="sensorData"></tbody>
+        </table>
+        <div class="pagination" id="pagination"></div>
+    </div>
     </div>
 
     <script>
@@ -119,24 +128,27 @@
     </script>
     <script>
         function loadSensorData(page = 1) {
-    fetch(`../api/get_sensor.php?page=${page}`)
-        .then(response => response.json())
-        .then(responseData => {
-            let tableBody = document.getElementById('sensorData');
-            let pagination = document.getElementById('pagination');
+            let keyword = document.getElementById("searchKeyword").value;
+            let startDate = document.getElementById("startDate").value;
+            let endDate = document.getElementById("endDate").value;
+            fetch(`../api/get_sensor.php?page=${page}`)
+                .then(response => response.json())
+                .then(responseData => {
+                    let tableBody = document.getElementById('sensorData');
+                    let pagination = document.getElementById('pagination');
 
-            // ❌ Xóa dữ liệu cũ
-            tableBody.innerHTML = "";
-            pagination.innerHTML = "";
+                    // ❌ Xóa dữ liệu cũ
+                    tableBody.innerHTML = "";
+                    pagination.innerHTML = "";
 
-            if (!responseData || !responseData.data || !Array.isArray(responseData.data)) {
-                tableBody.innerHTML = "<tr><td colspan='5'>Dữ liệu không hợp lệ</td></tr>";
-                return;
-            }
+                    if (!responseData || !responseData.data || !Array.isArray(responseData.data)) {
+                        tableBody.innerHTML = "<tr><td colspan='5'>Dữ liệu không hợp lệ</td></tr>";
+                        return;
+                    }
 
-            // ✅ Thêm dữ liệu vào bảng
-            responseData.data.forEach(sensor => {
-                let row = `
+                    // ✅ Thêm dữ liệu vào bảng
+                    responseData.data.forEach(sensor => {
+                        let row = `
                     <tr>
                         <td>${sensor.id}</td>
                         <td>${sensor.temperature}°C</td>
@@ -145,22 +157,22 @@
                         <td>${sensor.timestamp}</td>
                     </tr>
                 `;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            });
+                        tableBody.insertAdjacentHTML('beforeend', row);
+                    });
 
-            // ✅ Tạo phân trang chỉ với số trang
-            for (let i = 1; i <= responseData.totalPages; i++) {
-                pagination.innerHTML += `<button class="page-number ${i === page ? 'active-page' : ''}" onclick="loadSensorData(${i})">${i}</button>`;
-            }
-        })
-        .catch(error => console.error('Lỗi tải dữ liệu:', error));
-}
+                    // ✅ Tạo phân trang chỉ với số trang
+                    for (let i = 1; i <= responseData.totalPages; i++) {
+                        pagination.innerHTML += `<button class="page-number ${i === page ? 'active-page' : ''}" onclick="loadSensorData(${i})">${i}</button>`;
+                    }
+                })
+                .catch(error => console.error('Lỗi tải dữ liệu:', error));
+        }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadSensorData(); // Tải dữ liệu lần đầu
-});
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSensorData(); // Tải dữ liệu lần đầu
+        });
     </script>
-    
+
 </body>
 
 </html>
