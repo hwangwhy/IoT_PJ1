@@ -18,19 +18,6 @@
         body {
             background-color: #1e1e1e;
             color: white;
-            display: flex;
-        }
-
-        .content {
-            margin-left: 270px;
-            width: 100%;
-            padding: 20px;
-        }
-
-        .content {
-            margin-left: 270px;
-            width: 100%;
-            padding: 20px;
         }
 
         .card {
@@ -38,24 +25,27 @@
             color: white;
         }
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .pagination button {
-            padding: 10px 20px;
+        .page-number {
+            padding: 8px 12px;
+            margin: 2px;
             border: none;
-            border-radius: 5px;
-            background-color: #007bff;
+            background-color: #444;
             color: white;
             cursor: pointer;
+            border-radius: 4px;
         }
 
-        .pagination button:hover {
-            background-color: #0056b3;
+        .page-number:hover {
+            background-color: #666;
+        }
+
+        .active-page {
+            padding: 8px 12px;
+            margin: 2px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -64,82 +54,56 @@
     <div id="header-container"></div>
 
     <div class="container mt-4">
-        <h2 class="text-center">Lịch sử bật/tắt thiết bị</h2>
+        <div class="card p-3">
+            <h5 class="text-center">Lịch sử bật/tắt thiết bị</h5>
 
-        <!-- Ô tìm kiếm và lọc theo ngày -->
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <input type="text" id="searchKeyword" class="form-control" placeholder="Nhập từ khóa...">
+            <!-- Ô tìm kiếm -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" id="searchKeyword" class="form-control" placeholder="Nhập từ khóa...">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" id="startDate" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" id="endDate" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" onclick="loadHistory(1)">Tìm kiếm</button>
+                </div>
             </div>
-            <div class="col-md-3">
-                <title>Ngày bắt đầu</title>
-                <input type="date" id="startDate" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <title>Ngày kết thúc</title>
-                <input type="date" id="endDate" class="form-control">
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100" onclick="loadHistory(1)">Tìm kiếm</button>
-            </div>
+
+            <!-- Bảng dữ liệu -->
+            <table id="historyTable" class="table table-dark table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên thiết bị</th>
+                        <th>Hành động</th>
+                        <th>Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <!-- Phân trang -->
+            <div class="pagination" id="pagination"></div>
         </div>
-
-        <table class="table table-dark">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Tên thiết bị</th>
-                    <th>Hành động</th>
-                    <th>Thời gian</th>
-                </tr>
-            </thead>
-            <tbody id="historyTable"></tbody>
-        </table>
-
-        <!-- Nút phân trang -->
-        <div id="pagination" class="text-center mt-3"></div>
     </div>
 
-
     <script>
-        let currentPage = 1;
-
-        $(document).ready(function () {
-            // Gọi loadHistory khi trang tải
-            loadHistory(1);
-
-            // Khi nhấn tìm kiếm
-            $("#searchButton").click(function () {
-                loadHistory(1);
-            });
-
-            // Khi thay đổi ngày, tự động tìm kiếm
-            $("#startDate, #endDate").change(function () {
-                loadHistory(1);
-            });
-
-            // Khi nhập từ khóa và nhấn Enter, tự động tìm kiếm
-            $("#searchKeyword").keypress(function (event) {
-                if (event.which === 13) { // 13 là mã phím Enter
-                    loadHistory(1);
-                }
-            });
-        });
-
-        function loadHistory(page) {
-            let keyword = $("#searchKeyword").val().trim();  // Lấy từ khóa
-            let startDate = $("#startDate").val();  // Lấy ngày bắt đầu
-            let endDate = $("#endDate").val();  // Lấy ngày kết thúc
-
-            console.log(`🔍 Gửi request với: page=${page}, keyword=${keyword}, startDate=${startDate}, endDate=${endDate}`);
+        function loadHistory(page = 1) {
+            let keyword = $("#searchKeyword").val().trim();
+            let startDate = $("#startDate").val();
+            let endDate = $("#endDate").val();
 
             $.ajax({
                 url: `../api/get_history.php`,
                 type: "GET",
-                data: { page: page, keyword: keyword, startDate: startDate, endDate: endDate },
+                data: { page, keyword, startDate, endDate },
                 dataType: "json",
                 success: function (data) {
-                    let tableBody = $("#historyTable");
+                    let tableBody = $("#historyTable tbody");
                     tableBody.empty();
 
                     if (data.history.length === 0) {
@@ -147,11 +111,11 @@
                     } else {
                         data.history.forEach(row => {
                             tableBody.append(`<tr>
-                        <td>${row.id}</td>
-                        <td>${row.name}</td>
-                        <td>${row.action}</td>
-                        <td>${row.timestamp}</td>
-                    </tr>`);
+                                <td>${row.id}</td>
+                                <td>${row.name}</td>
+                                <td>${row.action}</td>
+                                <td>${row.timestamp}</td>
+                            </tr>`);
                         });
                     }
 
@@ -163,53 +127,19 @@
             });
         }
 
-        // Khi trang tải xong, gọi loadHistory()
-        $(document).ready(function () {
-            loadHistory(1);
-
-            // Khi nhấn tìm kiếm
-            $("#searchButton").click(function () {
-                loadHistory(1);
-            });
-
-            // Khi thay đổi ngày, tự động tìm kiếm
-            $("#startDate, #endDate").change(function () {
-                loadHistory(1);
-            });
-
-            // Khi nhập từ khóa và nhấn Enter, tự động tìm kiếm
-            $("#searchKeyword").keypress(function (event) {
-                if (event.which === 13) {
-                    loadHistory(1);
-                }
-            });
-        });
-
-
         function renderPagination(totalPages, currentPage) {
             let paginationDiv = $("#pagination");
             paginationDiv.empty();
 
-            let paginationHtml = `<ul class="pagination justify-content-center">`;
-
             for (let i = 1; i <= totalPages; i++) {
-                paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-            <a class="page-link" href="#" onclick="loadHistory(${i})">${i}</a>
-        </li>`;
+                paginationDiv.append(`<button class="page-number ${i === currentPage ? 'active-page' : ''}" onclick="loadHistory(${i})">${i}</button>`);
             }
-
-            paginationHtml += `</ul>`;
-            paginationDiv.html(paginationHtml);
         }
 
-
         $(document).ready(function () {
-            loadHistory(currentPage);
+            loadHistory(1);
         });
-    </script>
 
-    <script>
-        // Load header.html vào div #header-container
         fetch("../public/header.html")
             .then(response => response.text())
             .then(data => {
