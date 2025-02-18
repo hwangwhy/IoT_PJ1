@@ -71,21 +71,21 @@
                     <button class="btn btn-primary w-100" onclick="loadSensorData(1)">Tìm kiếm</button>
                 </div>
             </div>
+
+            <table id="sensorTable" class="table table-dark table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nhiệt Độ</th>
+                        <th>Độ Ẩm</th>
+                        <th>Ánh Sáng</th>
+                        <th>Thời Gian</th>
+                    </tr>
+                </thead>
+                <tbody id="sensorData"></tbody>
+            </table>
+            <div class="pagination" id="pagination"></div>
         </div>
-        <table id="sensorTable" class="table table-dark table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nhiệt Độ</th>
-                    <th>Độ Ẩm</th>
-                    <th>Ánh Sáng</th>
-                    <th>Thời Gian</th>
-                </tr>
-            </thead>
-            <tbody id="sensorData"></tbody>
-        </table>
-        <div class="pagination" id="pagination"></div>
-    </div>
     </div>
 
     <script>
