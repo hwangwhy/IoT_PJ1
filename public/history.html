@@ -62,44 +62,44 @@
 
 <body>
     <div id="header-container"></div>
-    
-        <div class="container mt-4">
-            <h2 class="text-center">Lịch sử bật/tắt thiết bị</h2>
 
-            <!-- Ô tìm kiếm và lọc theo ngày -->
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <input type="text" id="searchKeyword" class="form-control" placeholder="Nhập từ khóa...">
-                </div>
-                <div class="col-md-3">
-                    <title>Ngày bắt đầu</title>
-                    <input type="date" id="startDate" class="form-control">
-                </div>
-                <div class="col-md-3">
-                    <title>Ngày kết thúc</title>
-                    <input type="date" id="endDate" class="form-control">
-                </div>
-                <div class="col-md-2">
-                    <button class="btn btn-primary w-100" onclick="loadHistory(1)">Tìm kiếm</button>
-                </div>
+    <div class="container mt-4">
+        <h2 class="text-center">Lịch sử bật/tắt thiết bị</h2>
+
+        <!-- Ô tìm kiếm và lọc theo ngày -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="searchKeyword" class="form-control" placeholder="Nhập từ khóa...">
             </div>
-
-            <table class="table table-dark">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Tên thiết bị</th>
-                        <th>Hành động</th>
-                        <th>Thời gian</th>
-                    </tr>
-                </thead>
-                <tbody id="historyTable"></tbody>
-            </table>
-
-            <!-- Nút phân trang -->
-            <div id="pagination" class="text-center mt-3"></div>
+            <div class="col-md-3">
+                <title>Ngày bắt đầu</title>
+                <input type="date" id="startDate" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <title>Ngày kết thúc</title>
+                <input type="date" id="endDate" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="loadHistory(1)">Tìm kiếm</button>
+            </div>
         </div>
- 
+
+        <table class="table table-dark">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên thiết bị</th>
+                    <th>Hành động</th>
+                    <th>Thời gian</th>
+                </tr>
+            </thead>
+            <tbody id="historyTable"></tbody>
+        </table>
+
+        <!-- Nút phân trang -->
+        <div id="pagination" class="text-center mt-3"></div>
+    </div>
+
 
     <script>
         let currentPage = 1;
@@ -190,16 +190,18 @@
             let paginationDiv = $("#pagination");
             paginationDiv.empty();
 
+            let paginationHtml = `<ul class="pagination justify-content-center">`;
+
             for (let i = 1; i <= totalPages; i++) {
-                let button = $(`<button>${i}</button>`);
-                button.addClass(i === currentPage ? "active" : "");
-                button.click(() => {
-                    currentPage = i;
-                    loadHistory(i);
-                });
-                paginationDiv.append(button);
+                paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="loadHistory(${i})">${i}</a>
+        </li>`;
             }
+
+            paginationHtml += `</ul>`;
+            paginationDiv.html(paginationHtml);
         }
+
 
         $(document).ready(function () {
             loadHistory(currentPage);
