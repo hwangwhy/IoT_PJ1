@@ -3,6 +3,7 @@
     <a href="index.html" id="home">🏠 Trang Chủ</a>
     <a href="history.html" id="history">📜 Lịch Sử Thao Tác</a>
     <a href="data.html" id="data">📊 Dữ Liệu Cảm Biến</a>
+    <a href="about.html" id="info">💼Thông tin về Tôi</a>
 </div>
 
 <script>
@@ -11,10 +12,15 @@
         let menuItems = {
             "index.html": "home",
             "history.html": "history",
-            "data.html": "data"
+            "data.html": "data",
+            "about.html": "info"
         };
-        if (menuItems[currentPath]) {
-            document.getElementById(menuItems[currentPath]).classList.add("active");
+        let activeItem = menuItems[currentPath];
+    if (activeItem) {
+        let element = document.getElementById(activeItem);
+        if (element) {
+            element.classList.add("active");
         }
+    }
     });
 </script>
