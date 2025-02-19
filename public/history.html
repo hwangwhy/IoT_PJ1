@@ -93,40 +93,46 @@
 
     <script>
         function loadHistory(page = 1) {
-            let keyword = $("#searchKeyword").val().trim();
-            let startDate = $("#startDate").val();
-            let endDate = $("#endDate").val();
+    let keyword = $("#searchKeyword").val().trim().toLowerCase();
+    let startDate = $("#startDate").val();
+    let endDate = $("#endDate").val();
 
-            $.ajax({
-                url: `../api/get_history.php`,
-                type: "GET",
-                data: { page, keyword, startDate, endDate },
-                dataType: "json",
-                success: function (data) {
-                    let tableBody = $("#historyTable tbody");
-                    tableBody.empty();
+    $.ajax({
+        url: `../api/get_history.php`,
+        type: "GET",
+        data: { page, keyword, startDate, endDate },
+        dataType: "json",
+        success: function (data) {
+            let tableBody = $("#historyTable tbody");
+            tableBody.empty();
 
-                    if (data.history.length === 0) {
-                        tableBody.append(`<tr><td colspan="4" class="text-center">Không tìm thấy dữ liệu</td></tr>`);
-                    } else {
-                        data.history.forEach(row => {
-                            tableBody.append(`<tr>
-                                <td>${row.id}</td>
-                                <td>${row.name}</td>
-                                <td>${row.action}</td>
-                                <td>${row.timestamp}</td>
-                            </tr>`);
-                        });
-                    }
+            let filteredData = data.history.filter(row => 
+                row.id.toString().includes(keyword) ||
+                row.name.toLowerCase().includes(keyword) ||
+                row.action.toLowerCase().includes(keyword) ||
+                row.timestamp.includes(keyword)
+            );
 
-                    renderPagination(data.total_pages, page);
-                },
-                error: function (xhr, status, error) {
-                    console.error("❌ Lỗi tải dữ liệu lịch sử:", error);
-                }
-            });
+            if (filteredData.length === 0) {
+                tableBody.append(`<tr><td colspan="4" class="text-center">Không tìm thấy dữ liệu</td></tr>`);
+            } else {
+                filteredData.forEach(row => {
+                    tableBody.append(`<tr>
+                        <td>${row.id}</td>
+                        <td>${row.name}</td>
+                        <td>${row.action}</td>
+                        <td>${row.timestamp}</td>
+                    </tr>`);
+                });
+            }
+
+            renderPagination(data.total_pages, page);
+        },
+        error: function (xhr, status, error) {
+            console.error("❌ Lỗi tải dữ liệu lịch sử:", error);
         }
-
+    });
+}
         function renderPagination(totalPages, currentPage) {
             let paginationDiv = $("#pagination");
             paginationDiv.empty();

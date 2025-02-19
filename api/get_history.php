@@ -8,22 +8,21 @@ $endDate = isset($_GET['endDate']) ? $_GET['endDate'] : '';
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-// Debug xem dữ liệu nhận đúng không
-error_log("🔍 GET PARAMS: page=$page, keyword=$keyword, startDate=$startDate, endDate=$endDate");
-
+// Câu lệnh SQL chính
 $sql = "SELECT history.id, devices.name, history.action, history.timestamp 
         FROM history 
         JOIN devices ON history.device_id = devices.id 
         WHERE 1=1";
-
 $params = [];
 $types = "";
 
-// Nếu có từ khóa tìm kiếm
+// Nếu có từ khóa tìm kiếm (Tìm cả trong ID, tên thiết bị, hành động)
 if (!empty($keyword)) {
-    $sql .= " AND devices.name LIKE ?";
+    $sql .= " AND (history.id LIKE ? OR devices.name LIKE ? OR history.action LIKE ?)";
     $params[] = "%$keyword%";
-    $types .= "s";
+    $params[] = "%$keyword%";
+    $params[] = "%$keyword%";
+    $types .= "sss";
 }
 
 // Nếu có ngày bắt đầu
@@ -40,6 +39,7 @@ if (!empty($endDate)) {
     $types .= "s";
 }
 
+// Thêm phân trang và sắp xếp dữ liệu
 $sql .= " ORDER BY history.id ASC LIMIT ?, ?";
 $params[] = $offset;
 $params[] = $limit;
@@ -63,10 +63,6 @@ $result_total = $stmt_total->get_result();
 $total_rows = $result_total->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $limit);
 
-// Debug xem API có trả về dữ liệu không
-error_log("🔍 Query: " . $sql);
-error_log("🔍 Tổng số trang: " . $total_pages);
-
+// Trả về JSON chuẩn
 echo json_encode(["history" => $history, "total_pages" => $total_pages]);
 ?>
- 

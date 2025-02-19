@@ -90,9 +90,20 @@
 
     <script>
         function filterTable() {
-            let keyword = document.getElementById("searchKeyword").value;
-            $('#sensorTable').DataTable().search(keyword).draw();
+            let keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
+            let startDate = document.getElementById("startDate").value;
+            let endDate = document.getElementById("endDate").value;
+
+            let table = $('#sensorTable').DataTable();
+            table.column(0).search(keyword, false, false);  // Tìm theo ID
+            table.column(1).search(keyword, false, false);  // Tìm theo Nhiệt độ
+            table.column(2).search(keyword, false, false);  // Tìm theo Độ ẩm
+            table.column(3).search(keyword, false, false);  // Tìm theo Ánh sáng
+            table.column(4).search(keyword, false, false);  // Tìm theo Thời gian
+
+            table.draw();
         }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             $(document).ready(function () {
@@ -128,49 +139,55 @@
     </script>
     <script>
         function loadSensorData(page = 1) {
-            let keyword = document.getElementById("searchKeyword").value;
-            let startDate = document.getElementById("startDate").value;
-            let endDate = document.getElementById("endDate").value;
-            fetch(`../api/get_sensor.php?page=${page}`)
-                .then(response => response.json())
-                .then(responseData => {
-                    let tableBody = document.getElementById('sensorData');
-                    let pagination = document.getElementById('pagination');
+    let keyword = document.getElementById("searchKeyword").value.trim();
+    let startDate = document.getElementById("startDate").value;
+    let endDate = document.getElementById("endDate").value;
 
-                    // ❌ Xóa dữ liệu cũ
-                    tableBody.innerHTML = "";
-                    pagination.innerHTML = "";
+    let url = `../api/get_sensor.php?page=${page}&keyword=${encodeURIComponent(keyword)}&startDate=${startDate}&endDate=${endDate}`;
 
-                    if (!responseData || !responseData.data || !Array.isArray(responseData.data)) {
-                        tableBody.innerHTML = "<tr><td colspan='5'>Dữ liệu không hợp lệ</td></tr>";
-                        return;
-                    }
+    fetch(url)
+        .then(response => response.json())
+        .then(responseData => {
+            let tableBody = document.getElementById('sensorData');
+            let pagination = document.getElementById('pagination');
 
-                    // ✅ Thêm dữ liệu vào bảng
-                    responseData.data.forEach(sensor => {
-                        let row = `
-                    <tr>
-                        <td>${sensor.id}</td>
-                        <td>${sensor.temperature}°C</td>
-                        <td>${sensor.humidity}%</td>
-                        <td>${sensor.light} lx</td>
-                        <td>${sensor.timestamp}</td>
-                    </tr>
-                `;
-                        tableBody.insertAdjacentHTML('beforeend', row);
-                    });
+            tableBody.innerHTML = "";
+            pagination.innerHTML = "";
 
-                    // ✅ Tạo phân trang chỉ với số trang
-                    for (let i = 1; i <= responseData.totalPages; i++) {
-                        pagination.innerHTML += `<button class="page-number ${i === page ? 'active-page' : ''}" onclick="loadSensorData(${i})">${i}</button>`;
-                    }
-                })
-                .catch(error => console.error('Lỗi tải dữ liệu:', error));
-        }
+            if (!responseData || !responseData.data || !Array.isArray(responseData.data)) {
+                tableBody.innerHTML = "<tr><td colspan='5'>Không có dữ liệu</td></tr>";
+                return;
+            }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSensorData(); // Tải dữ liệu lần đầu
-        });
+            // ✅ Thêm dữ liệu vào bảng
+            responseData.data.forEach(sensor => {
+                let row = `
+                <tr>
+                    <td>${sensor.id}</td>
+                    <td>${sensor.temperature}°C</td>
+                    <td>${sensor.humidity}%</td>
+                    <td>${sensor.light} lx</td>
+                    <td>${sensor.timestamp}</td>
+                </tr>`;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            // ✅ Hiển thị phân trang ngay cả khi không tìm kiếm
+            for (let i = 1; i <= responseData.totalPages; i++) {
+                pagination.innerHTML += `<button class="page-number ${i === page ? 'active-page' : ''}" onclick="loadSensorData(${i})">${i}</button>`;
+            }
+        })
+        .catch(error => console.error('Lỗi tải dữ liệu:', error));
+}
+
+// ✅ Gọi loadSensorData() khi trang tải để hiển thị dữ liệu và phân trang ngay từ đầu
+document.addEventListener('DOMContentLoaded', () => {
+    loadSensorData();
+});
+
+// ✅ Khi bấm tìm kiếm, gọi loadSensorData(1)
+document.querySelector(".btn-primary").addEventListener("click", () => loadSensorData(1));
+
     </script>
 
 </body>
