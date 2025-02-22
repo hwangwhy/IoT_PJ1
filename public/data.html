@@ -21,7 +21,6 @@
             background-color: #2a2a2a;
             color: white;
         }
-
         .page-number {
             padding: 8px 12px;
             margin: 2px;
@@ -44,11 +43,6 @@
             color: white;
             border-radius: 4px;
         }
-
-        .dataTables_paginate {
-            display: none !important;
-            /* ✅ Ẩn phân trang */
-        }
     </style>
 </head>
 
@@ -58,14 +52,17 @@
         <div class="card p-3">
             <h5 class="text-center">Dữ Liệu Cảm Biến</h5>
             <div class="row mb-3">
+                <div class="col-md-3">
+                    <select id="searchField" class="form-control">
+                        <option value="id">ID</option>
+                        <option value="temperature">Nhiệt Độ</option>
+                        <option value="humidity">Độ Ẩm</option>
+                        <option value="light">Ánh Sáng</option>
+                        <option value="timestamp">Thời Gian</option>
+                    </select>
+                </div>
                 <div class="col-md-4">
                     <input type="text" id="searchKeyword" class="form-control" placeholder="Nhập từ khóa">
-                </div>
-                <div class="col-md-3">
-                    <input type="date" id="startDate" class="form-control">
-                </div>
-                <div class="col-md-3">
-                    <input type="date" id="endDate" class="form-control">
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-primary w-100" onclick="loadSensorData(1)">Tìm kiếm</button>
@@ -89,61 +86,11 @@
     </div>
 
     <script>
-        function filterTable() {
-            let keyword = document.getElementById("searchKeyword").value.trim().toLowerCase();
-            let startDate = document.getElementById("startDate").value;
-            let endDate = document.getElementById("endDate").value;
-
-            let table = $('#sensorTable').DataTable();
-            table.column(0).search(keyword, false, false);  // Tìm theo ID
-            table.column(1).search(keyword, false, false);  // Tìm theo Nhiệt độ
-            table.column(2).search(keyword, false, false);  // Tìm theo Độ ẩm
-            table.column(3).search(keyword, false, false);  // Tìm theo Ánh sáng
-            table.column(4).search(keyword, false, false);  // Tìm theo Thời gian
-
-            table.draw();
-        }
-
-
-        document.addEventListener('DOMContentLoaded', () => {
-            $(document).ready(function () {
-                $('#sensorTable').DataTable({
-                    "processing": true,
-                    "serverSide": false,  // Để false vì ta tự fetch dữ liệu
-                    "ajax": {
-                        "url": "../api/get_sensor.php",
-                        "dataSrc": "data" // DataTables sẽ lấy dữ liệu từ `responseData.data`
-                    },
-                    "columns": [
-                        { "data": "id" },
-                        { "data": "temperature", "render": function (data) { return data + "°C"; } },
-                        { "data": "humidity", "render": function (data) { return data + "%"; } },
-                        { "data": "light", "render": function (data) { return data + " lx"; } },
-                        { "data": "timestamp" }
-                    ],
-                    "info": false,
-                    "searching": false,
-                    "lengthChange": false,
-                });
-            });
-
-        });
-    </script>
-
-    <script>
-        fetch("../public/header.html")
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById("header-container").innerHTML = data;
-            });
-    </script>
-    <script>
         function loadSensorData(page = 1) {
     let keyword = document.getElementById("searchKeyword").value.trim();
-    let startDate = document.getElementById("startDate").value;
-    let endDate = document.getElementById("endDate").value;
+    let field = document.getElementById("searchField").value;
 
-    let url = `../api/get_sensor.php?page=${page}&keyword=${encodeURIComponent(keyword)}&startDate=${startDate}&endDate=${endDate}`;
+    let url = `../api/get_sensor.php?page=${page}&field=${field}&keyword=${encodeURIComponent(keyword)}`;
 
     fetch(url)
         .then(response => response.json())
@@ -159,7 +106,6 @@
                 return;
             }
 
-            // ✅ Thêm dữ liệu vào bảng
             responseData.data.forEach(sensor => {
                 let row = `
                 <tr>
@@ -172,7 +118,6 @@
                 tableBody.insertAdjacentHTML('beforeend', row);
             });
 
-            // ✅ Hiển thị phân trang ngay cả khi không tìm kiếm
             for (let i = 1; i <= responseData.totalPages; i++) {
                 pagination.innerHTML += `<button class="page-number ${i === page ? 'active-page' : ''}" onclick="loadSensorData(${i})">${i}</button>`;
             }
@@ -180,16 +125,23 @@
         .catch(error => console.error('Lỗi tải dữ liệu:', error));
 }
 
-// ✅ Gọi loadSensorData() khi trang tải để hiển thị dữ liệu và phân trang ngay từ đầu
 document.addEventListener('DOMContentLoaded', () => {
     loadSensorData();
 });
 
-// ✅ Khi bấm tìm kiếm, gọi loadSensorData(1)
-document.querySelector(".btn-primary").addEventListener("click", () => loadSensorData(1));
 
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSensorData();
+        });
     </script>
 
+    <script>
+        fetch("../public/header.html")
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById("header-container").innerHTML = data;
+            });
+    </script>
 </body>
 
 </html>

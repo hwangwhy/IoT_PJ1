@@ -5,23 +5,21 @@ $limit = 10;
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
+$field = isset($_GET['field']) ? $_GET['field'] : '';
 $startDate = isset($_GET['startDate']) ? $_GET['startDate'] : '';
 $endDate = isset($_GET['endDate']) ? $_GET['endDate'] : '';
 
-// Điều kiện lọc dữ liệu
+// Danh sách các cột hợp lệ
+$validFields = ['id', 'temperature', 'humidity', 'light', 'timestamp'];
 $sqlFilter = " WHERE 1=1";
 $params = [];
 $types = "";
 
-// Nếu có từ khóa
-if (!empty($keyword)) {
-    $sqlFilter .= " AND (id LIKE ? OR temperature LIKE ? OR humidity LIKE ? OR light LIKE ? OR timestamp LIKE ?)";
+// Chỉ tìm kiếm trong cột đã chọn
+if (!empty($keyword) && in_array($field, $validFields)) {
+    $sqlFilter .= " AND $field LIKE ?";
     $params[] = "%$keyword%";
-    $params[] = "%$keyword%";
-    $params[] = "%$keyword%";
-    $params[] = "%$keyword%";
-    $params[] = "%$keyword%";
-    $types .= "sssss";
+    $types .= "s";
 }
 
 // Nếu có ngày bắt đầu
@@ -70,7 +68,7 @@ $latest = $latestResult->fetch_assoc();
 // Trả về JSON
 echo json_encode([
     "data" => $data,
-    "latest" => $latest,  // Thêm dữ liệu mới nhất
+    "latest" => $latest,
     "totalPages" => $totalPages,
     "currentPage" => $page
 ]);
