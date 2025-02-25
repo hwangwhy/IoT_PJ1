@@ -21,6 +21,7 @@
             background-color: #2a2a2a;
             color: white;
         }
+
         .page-number {
             padding: 8px 12px;
             margin: 2px;
@@ -87,27 +88,30 @@
 
     <script>
         function loadSensorData(page = 1) {
-    let keyword = document.getElementById("searchKeyword").value.trim();
-    let field = document.getElementById("searchField").value;
+            let keyword = document.getElementById("searchKeyword").value.trim();
+            let field = document.getElementById("searchField").value;
 
-    let url = `../api/get_sensor.php?page=${page}&field=${field}&keyword=${encodeURIComponent(keyword)}`;
+            // Loại bỏ ký tự đặc biệt °C, lx, % bằng regex
+            keyword = keyword.replace(/[°Cclx%]/gi, "").trim();
 
-    fetch(url)
-        .then(response => response.json())
-        .then(responseData => {
-            let tableBody = document.getElementById('sensorData');
-            let pagination = document.getElementById('pagination');
+            let url = `../api/get_sensor.php?page=${page}&field=${field}&keyword=${encodeURIComponent(keyword)}`;
 
-            tableBody.innerHTML = "";
-            pagination.innerHTML = "";
+            fetch(url)
+                .then(response => response.json())
+                .then(responseData => {
+                    let tableBody = document.getElementById('sensorData');
+                    let pagination = document.getElementById('pagination');
 
-            if (!responseData || !responseData.data || !Array.isArray(responseData.data)) {
-                tableBody.innerHTML = "<tr><td colspan='5'>Không có dữ liệu</td></tr>";
-                return;
-            }
+                    tableBody.innerHTML = "";
+                    pagination.innerHTML = "";
 
-            responseData.data.forEach(sensor => {
-                let row = `
+                    if (!responseData || !responseData.data || !Array.isArray(responseData.data)) {
+                        tableBody.innerHTML = "<tr><td colspan='5'>Không có dữ liệu</td></tr>";
+                        return;
+                    }
+
+                    responseData.data.forEach(sensor => {
+                        let row = `
                 <tr>
                     <td>${sensor.id}</td>
                     <td>${sensor.temperature}°C</td>
@@ -115,19 +119,20 @@
                     <td>${sensor.light} lx</td>
                     <td>${sensor.timestamp}</td>
                 </tr>`;
-                tableBody.insertAdjacentHTML('beforeend', row);
-            });
+                        tableBody.insertAdjacentHTML('beforeend', row);
+                    });
 
-            for (let i = 1; i <= responseData.totalPages; i++) {
-                pagination.innerHTML += `<button class="page-number ${i === page ? 'active-page' : ''}" onclick="loadSensorData(${i})">${i}</button>`;
-            }
-        })
-        .catch(error => console.error('Lỗi tải dữ liệu:', error));
-}
+                    for (let i = 1; i <= responseData.totalPages; i++) {
+                        pagination.innerHTML += `<button class="page-number ${i === page ? 'active-page' : ''}" onclick="loadSensorData(${i})">${i}</button>`;
+                    }
+                })
+                .catch(error => console.error('Lỗi tải dữ liệu:', error));
+        }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadSensorData();
-});
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSensorData();
+        });
 
 
         document.addEventListener('DOMContentLoaded', () => {
