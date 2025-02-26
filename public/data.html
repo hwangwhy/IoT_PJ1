@@ -89,11 +89,7 @@
     <script>
         function loadSensorData(page = 1) {
             let keyword = document.getElementById("searchKeyword").value.trim();
-            let field = document.getElementById("searchField").value;
-
-            // Loại bỏ ký tự đặc biệt °C, lx, % bằng regex
-            keyword = keyword.replace(/[°Cclx%]/gi, "").trim();
-
+            let field = document.getElementById("searchField").value;         
             let url = `../api/get_sensor.php?page=${page}&field=${field}&keyword=${encodeURIComponent(keyword)}`;
 
             fetch(url)

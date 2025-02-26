@@ -15,11 +15,31 @@ $sqlFilter = " WHERE 1=1";
 $params = [];
 $types = "";
 
+// Xử lý loại bỏ đơn vị nếu có
+function cleanKeyword($field, $keyword) {
+    if ($field === 'temperature') {
+        return str_replace("°C", "", $keyword);
+    } elseif ($field === 'light') {
+        return str_replace(" lx", "", $keyword);
+    } elseif ($field === 'humidity') {
+        return str_replace("%", "", $keyword);
+    }
+    return $keyword;
+}
+
 // Chỉ tìm kiếm trong cột đã chọn
 if (!empty($keyword) && in_array($field, $validFields)) {
-    $sqlFilter .= " AND $field LIKE ?";
-    $params[] = "%$keyword%";
-    $types .= "s";
+    $cleanedKeyword = cleanKeyword($field, $keyword);
+
+    if ($field === 'id') {
+        $sqlFilter .= " AND id = ?";
+        $params[] = $cleanedKeyword;
+        $types .= "i";  // ID là số nguyên
+    } else {
+        $sqlFilter .= " AND $field LIKE ?";
+        $params[] = "%$cleanedKeyword%";
+        $types .= "s";
+    }
 }
 
 // Nếu có ngày bắt đầu
@@ -36,7 +56,7 @@ if (!empty($endDate)) {
     $types .= "s";
 }
 
-// Lấy tổng số bản ghi (DÙNG CÙNG ĐIỀU KIỆN LỌC)
+// Lấy tổng số bản ghi
 $totalQuery = "SELECT COUNT(*) AS total FROM sensors" . $sqlFilter;
 $stmt_total = $conn->prepare($totalQuery);
 if (!empty($params)) {
