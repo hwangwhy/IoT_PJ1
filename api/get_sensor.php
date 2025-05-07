@@ -9,13 +9,27 @@ $field = isset($_GET['field']) ? $_GET['field'] : '';
 $startDate = isset($_GET['startDate']) ? $_GET['startDate'] : '';
 $endDate = isset($_GET['endDate']) ? $_GET['endDate'] : '';
 
-// Danh sách các cột hợp lệ
-$validFields = ['id', 'temperature', 'humidity', 'light', 'timestamp'];
+$validFields = ['id', 'temperature', 'humidity', 'light', 'wind_speed', 'timestamp'];
 $sqlFilter = " WHERE 1=1";
 $params = [];
 $types = "";
 
-// Xử lý loại bỏ đơn vị nếu có
+foreach ($_GET as $key => $value) {
+    if (in_array($key, $validFields) && !empty($value)) {
+        $cleanedValue = cleanKeyword($key, $value);
+        
+        if ($key === 'id') {
+            $sqlFilter .= " AND $key = ?";
+            $params[] = (int)$cleanedValue;
+            $types .= "i";
+        } else {
+            $sqlFilter .= " AND $key = ?";
+            $params[] = $cleanedValue;
+            $types .= "s";
+        }
+    }
+}
+
 function cleanKeyword($field, $keyword) {
     if ($field === 'temperature') {
         return str_replace("°C", "", $keyword);
@@ -23,18 +37,19 @@ function cleanKeyword($field, $keyword) {
         return str_replace(" lx", "", $keyword);
     } elseif ($field === 'humidity') {
         return str_replace("%", "", $keyword);
+    } elseif ($field === 'wind_speed') {
+        return str_replace(" m/s", "", $keyword);
     }
     return $keyword;
 }
 
-// Chỉ tìm kiếm trong cột đã chọn
 if (!empty($keyword) && in_array($field, $validFields)) {
     $cleanedKeyword = cleanKeyword($field, $keyword);
 
     if ($field === 'id') {
         $sqlFilter .= " AND id = ?";
         $params[] = $cleanedKeyword;
-        $types .= "i";  // ID là số nguyên
+        $types .= "i";
     } else {
         $sqlFilter .= " AND $field LIKE ?";
         $params[] = "%$cleanedKeyword%";
@@ -42,21 +57,18 @@ if (!empty($keyword) && in_array($field, $validFields)) {
     }
 }
 
-// Nếu có ngày bắt đầu
 if (!empty($startDate)) {
     $sqlFilter .= " AND timestamp >= ?";
     $params[] = $startDate . " 00:00:00";
     $types .= "s";
 }
 
-// Nếu có ngày kết thúc
 if (!empty($endDate)) {
     $sqlFilter .= " AND timestamp <= ?";
     $params[] = $endDate . " 23:59:59";
     $types .= "s";
 }
 
-// Lấy tổng số bản ghi
 $totalQuery = "SELECT COUNT(*) AS total FROM sensors" . $sqlFilter;
 $stmt_total = $conn->prepare($totalQuery);
 if (!empty($params)) {
@@ -67,7 +79,6 @@ $totalResult = $stmt_total->get_result();
 $totalRow = $totalResult->fetch_assoc();
 $totalPages = ceil($totalRow['total'] / $limit);
 
-// Truy vấn dữ liệu có phân trang
 $sql = "SELECT * FROM sensors" . $sqlFilter . " ORDER BY timestamp ASC LIMIT ?, ?";
 $params[] = $offset;
 $params[] = $limit;
@@ -80,16 +91,15 @@ $result = $stmt->get_result();
 
 $data = $result->fetch_all(MYSQLI_ASSOC);
 
-// Lấy dữ liệu mới nhất
 $latestQuery = "SELECT * FROM sensors ORDER BY timestamp DESC LIMIT 1";
 $latestResult = $conn->query($latestQuery);
 $latest = $latestResult->fetch_assoc();
 
-// Trả về JSON
 echo json_encode([
     "data" => $data,
     "latest" => $latest,
     "totalPages" => $totalPages,
-    "currentPage" => $page
+    "currentPage" => $page,
+    "pageSize" => $limit
 ]);
 ?>

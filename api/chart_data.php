@@ -3,7 +3,7 @@ include 'db.php'; // Kết nối MySQL
 
 header('Content-Type: application/json');
 
-$sql_chart = "SELECT timestamp, temperature, humidity, light FROM sensors ORDER BY id DESC LIMIT 10";
+$sql_chart = "SELECT timestamp, temperature, humidity, light, wind_speed FROM sensors ORDER BY id DESC LIMIT 10";
 $result = mysqli_query($conn, $sql_chart);
 
 $data = [];

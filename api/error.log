@@ -1,0 +1,46 @@
+[07-May-2025 16:52:04 UTC] Fatal error in toggle_device.php: Class "phpMQTT" not found
+[07-May-2025 16:59:26 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:27 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 16:59:28 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:28 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 16:59:28 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:29 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 16:59:34 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:34 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 16:59:34 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:34 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 16:59:35 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:35 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 16:59:35 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:35 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 16:59:35 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:35 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 16:59:35 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:07:24 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:07:24 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:07:25 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:07:26 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:07:27 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:07:27 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:07:28 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:07:29 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:09:18 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:09:21 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:09:26 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:09:28 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:13:25 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:13:30 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:13:41 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:13:47 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:16:03 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:16:07 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:28:13 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}
+[07-May-2025 17:28:16 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}
+[07-May-2025 17:29:02 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED2':'ON'}, Device: Light2
+[07-May-2025 17:29:05 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED2':'OFF'}, Device: Light2
+[07-May-2025 17:29:08 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED3':'ON'}, Device: Light3
+[07-May-2025 17:29:11 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED3':'OFF'}, Device: Light3
+[07-May-2025 17:31:34 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED2':'ON'}, Device: Light2
+[07-May-2025 17:31:38 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED2':'OFF'}, Device: Light2
+[07-May-2025 17:38:34 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED3':'ON'}, Device: Light3
+[07-May-2025 17:38:38 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED3':'OFF'}, Device: Light3
