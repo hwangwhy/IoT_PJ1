@@ -7,17 +7,30 @@
     <title>Bảng Điều Khiển</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../public/header.css">
     <style>
         body {
             background-color: #1e1e1e;
             color: white;
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 60px; /* Add padding for header */
         }
 
         .content {
-            margin-left: 270px;
             width: 100%;
+            max-width: 1200px; /* Limit maximum width */
+            padding: 20px;
+            margin: 0 auto; /* Center content horizontally */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px; /* Match content max-width */
+            margin: 0 auto; /* Center container horizontally */
             padding: 20px;
         }
 
@@ -80,10 +93,10 @@
             cursor: not-allowed;
         }
 
-        #summaryChart {
+        .chart-container {
             width: 100% !important;
-            height: 400px !important;
-            max-height: 400px;
+            height: 250px !important;
+            max-height: 250px;
         }
 
         .blink-red {
@@ -94,6 +107,36 @@
             50% {
                 background-color: red;
             }
+        }
+        
+        .blink-temp {
+            animation: blink-temperature 1s infinite;
+        }
+        
+        @keyframes blink-temperature {
+            0% { background-color: #2a2a2a; }
+            50% { background-color: #ff5050; }
+            100% { background-color: #2a2a2a; }
+        }
+        
+        .blink-humid {
+            animation: blink-humidity 1s infinite;
+        }
+        
+        @keyframes blink-humidity {
+            0% { background-color: #2a2a2a; }
+            50% { background-color: #5050ff; }
+            100% { background-color: #2a2a2a; }
+        }
+        
+        .blink-light {
+            animation: blink-light 1s infinite;
+        }
+        
+        @keyframes blink-light {
+            0% { background-color: #2a2a2a; }
+            50% { background-color: #ffcc00; }
+            100% { background-color: #2a2a2a; }
         }
 
         /* Loading overlay styles */
@@ -131,6 +174,32 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Light bulb icon styles */
+        .bulb-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .bulb-off {
+            color: #666;
+        }
+        
+        .bulb-on {
+            color: #ffcc00;
+            text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffcc00;
+        }
+
+        /* Center the header */
+        #header-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+        }
     </style>
 </head>
 
@@ -143,44 +212,50 @@
     <div class="container mt-4">
         <!-- Phần 1: Hiển thị thông số cảm biến -->
         <div class="row text-center">
-            <div class="col-md-3">
-                <div class="card p-3">
+            <div class="col-md-4">
+                <div class="card p-3" id="tempCard">
                     <h5>Nhiệt độ</h5>
                     <h2 id="tempValue"></h2>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card p-3">
+            <div class="col-md-4">
+                <div class="card p-3" id="humidCard">
                     <h5>Độ ẩm</h5>
                     <h2 id="humidityValue"></h2>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card p-3">
+            <div class="col-md-4">
+                <div class="card p-3" id="lightCard">
                     <h5>Cường độ ánh sáng</h5>
                     <h2 id="lightValue"></h2>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card p-3" id="windSpeedCard">
-                    <h5>Tốc độ gió</h5>
-                    <h2 id="windSpeedValue"></h2>
-                </div>
-            </div>
         </div>
 
-        <!-- Biểu đồ tổng hợp -->
+        <!-- Biểu đồ riêng biệt cho từng giá trị -->
         <div class="row mt-4">
-            <div class="col-md-12">
+            <div class="col-md-4">
                 <div class="card p-3">
-                    <h5>Biểu đồ nhiệt độ, độ ẩm, cường độ ánh sáng & tốc độ gió</h5>
-                    <canvas id="summaryChart"></canvas>
+                    <h5>Biểu đồ nhiệt độ (°C)</h5>
+                    <canvas id="temperatureChart" class="chart-container"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Biểu đồ độ ẩm (%)</h5>
+                    <canvas id="humidityChart" class="chart-container"></canvas>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h5>Biểu đồ ánh sáng (lx)</h5>
+                    <canvas id="lightChart" class="chart-container"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Phần 2: Nút bật/tắt thiết bị -->
-        <div class="row mt-4" id="deviceControls">
+        <div class="row mt-4 justify-content-center" id="deviceControls">
         </div>
     </div>
 
@@ -207,10 +282,12 @@
 
                 data.forEach(device => {
                     let checked = device.status == 1 ? "checked" : "";
+                    let bulbClass = device.status == 1 ? "bulb-on" : "bulb-off";
                     let col = document.createElement("div");
                     col.className = "col-md-3";
                     col.innerHTML = `
                         <div class="card p-3 text-center">
+                            <i class="fas fa-lightbulb bulb-icon ${bulbClass}" id="bulb-${device.id}"></i>
                             <h5>${device.name}</h5>
                             <label class="switch">
                                 <input type="checkbox" class="toggle" data-id="${device.id}" ${checked}>
@@ -226,17 +303,23 @@
                         let deviceId = this.getAttribute("data-id");
                         let status = this.checked ? 1 : 0;
                         this.disabled = true; // Disable toggle during request
-
+                        
+                        // Update bulb icon immediately for responsive UI, but keep it in a pending state
+                        const bulbIcon = document.getElementById(`bulb-${deviceId}`);
+                        
                         // Show loading overlay
                         const loadingOverlay = document.querySelector('.loading-overlay');
                         loadingOverlay.classList.add('active');
-
+                        
                         try {
-                            // First, update the database but don't send MQTT message yet
+                            // Display loading animation first for better UX
+                            await new Promise(resolve => setTimeout(resolve, 800));
+                            
+                            // Now send the actual request to toggle the device
                             let response = await fetch("../api/toggle_device.php", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                body: `device_id=${deviceId}&status=${status}&delay=1`
+                                body: `device_id=${deviceId}&status=${status}&delay=0`
                             });
 
                             if (!response.ok) {
@@ -245,20 +328,29 @@
 
                             let result = await response.json();
                             if (!result.success) {
+                                // Error occurred, revert UI
+                                this.checked = !status;
                                 alert("Lỗi khi cập nhật thiết bị: " + (result.error || "Không xác định"));
-                                this.checked = !status; // Revert toggle on error
+                            } else {
+                                // Success - now update the UI to reflect the change
+                                if (status === 1) {
+                                    bulbIcon.classList.remove("bulb-off");
+                                    bulbIcon.classList.add("bulb-on");
+                                } else {
+                                    bulbIcon.classList.remove("bulb-on");
+                                    bulbIcon.classList.add("bulb-off");
+                                }
                             }
                             
                         } catch (error) {
+                            // Revert toggle on error
+                            this.checked = !status;
                             console.error("Lỗi khi gửi yêu cầu: ", error);
                             alert("Lỗi kết nối đến máy chủ: " + error.message);
-                            this.checked = !status; // Revert toggle on error
                         } finally {
-                            // Hide loading overlay after 1 second
-                            setTimeout(() => {
-                                loadingOverlay.classList.remove('active');
-                                this.disabled = false; // Re-enable toggle
-                            }, 1000);
+                            // Hide loading overlay
+                            loadingOverlay.classList.remove('active');
+                            this.disabled = false; // Re-enable toggle
                         }
                     });
                 });
@@ -281,18 +373,43 @@
                 document.getElementById("tempValue").textContent = latest.temperature + "°C";
                 document.getElementById("humidityValue").textContent = latest.humidity + "%";
                 document.getElementById("lightValue").textContent = latest.light + " lx";
-                document.getElementById("windSpeedValue").textContent = latest.wind_speed + " m/s";
 
-                const windSpeedCard = document.getElementById("windSpeedCard");
-                if (latest.wind_speed > 60) {
-                    windSpeedCard.classList.add("blink-red");
+                // Check for high temperature
+                const tempCard = document.getElementById("tempCard");
+                if (parseFloat(latest.temperature) > 30) {
+                    tempCard.classList.add("blink-temp");
                 } else {
-                    windSpeedCard.classList.remove("blink-red");
+                    tempCard.classList.remove("blink-temp");
+                }
+                
+                // Check for high humidity
+                const humidCard = document.getElementById("humidCard");
+                if (parseFloat(latest.humidity) > 50) {
+                    humidCard.classList.add("blink-humid");
+                } else {
+                    humidCard.classList.remove("blink-humid");
+                }
+                
+                // Check for high light intensity
+                const lightCard = document.getElementById("lightCard");
+                if (parseInt(latest.light) > 400) {
+                    lightCard.classList.add("blink-light");
+                } else {
+                    lightCard.classList.remove("blink-light");
                 }
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu cảm biến: ", error);
             }
         }
+
+        // Chart instances
+        let tempChartInstance = null;
+        let humidChartInstance = null;
+        let lightChartInstance = null;
+        
+        // Variables to track the latest data
+        let lastChartData = null;
+        let lastChartTimestamp = null;
 
         async function fetchData() {
             try {
@@ -303,30 +420,51 @@
                     console.warn("Dữ liệu biểu đồ rỗng hoặc không hợp lệ");
                     return;
                 }
-
-                const labels = data.map(row => row.timestamp);
-                const tempData = data.map(row => row.temperature);
-                const humidityData = data.map(row => row.humidity);
-                const lightData = data.map(row => row.light);
-                const windSpeedData = data.map(row => row.wind_speed);
-
-                updateChart(labels, tempData, humidityData, lightData, windSpeedData);
+                
+                // Check if we have new data before updating the charts
+                const latestDataPoint = data[data.length - 1];
+                
+                // If this is the first time loading data or we have new data
+                if (!lastChartData || 
+                    lastChartData.temperature !== latestDataPoint.temperature || 
+                    lastChartData.humidity !== latestDataPoint.humidity ||
+                    lastChartData.light !== latestDataPoint.light ||
+                    lastChartTimestamp !== latestDataPoint.timestamp) {
+                    
+                    console.log("New data detected, updating charts");
+                    
+                    // Save the latest data point
+                    lastChartData = latestDataPoint;
+                    lastChartTimestamp = latestDataPoint.timestamp;
+                    
+                    // Extract data for charts
+                    const labels = data.map(row => row.timestamp);
+                    const tempData = data.map(row => row.temperature);
+                    const humidityData = data.map(row => row.humidity);
+                    const lightData = data.map(row => row.light);
+                    
+                    // Update charts with new data
+                    updateTemperatureChart(labels, tempData);
+                    updateHumidityChart(labels, humidityData);
+                    updateLightChart(labels, lightData);
+                } else {
+                    // No new data, charts remain stable
+                    console.log("No new data detected, charts remain stable");
+                }
             } catch (error) {
                 console.error('Lỗi tải dữ liệu:', error);
             }
         }
 
-        let chartInstance = null;
+        function updateTemperatureChart(labels, tempData) {
+            const ctx = document.getElementById('temperatureChart').getContext('2d');
 
-        function updateChart(labels, tempData, humidityData, lightData, windSpeedData) {
-            const ctx = document.getElementById('summaryChart').getContext('2d');
-
-            if (chartInstance !== null) {
-                chartInstance.destroy();
-                chartInstance = null;
+            if (tempChartInstance !== null) {
+                tempChartInstance.destroy();
+                tempChartInstance = null;
             }
 
-            chartInstance = new Chart(ctx, {
+            tempChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -336,28 +474,8 @@
                             data: tempData,
                             borderColor: 'red',
                             backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                            fill: true
-                        },
-                        {
-                            label: 'Độ ẩm (%)',
-                            data: humidityData,
-                            borderColor: 'blue',
-                            backgroundColor: 'rgba(0, 0, 255, 0.2)',
-                            fill: true
-                        },
-                        {
-                            label: 'Ánh sáng (lx)',
-                            data: lightData,
-                            borderColor: 'yellow',
-                            backgroundColor: 'rgba(255, 255, 0, 0.2)',
-                            fill: true
-                        },
-                        {
-                            label: 'Tốc độ gió (m/s)',
-                            data: windSpeedData,
-                            borderColor: 'green',
-                            backgroundColor: 'rgba(0, 255, 0, 0.2)',
-                            fill: true
+                            fill: true,
+                            tension: 0.4
                         }
                     ]
                 },
@@ -365,8 +483,97 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { title: { display: true, text: 'Thời gian' } },
-                        y: { title: { display: true, text: 'Giá trị' } }
+                        y: { 
+                            beginAtZero: false,
+                            title: { display: true, text: '°C' },
+                            ticks: { color: 'red' }
+                        },
+                        x: { display: false } // Hide x-axis labels to save space
+                    },
+                    plugins: {
+                        legend: { display: false } // Hide legend as it's redundant
+                    }
+                }
+            });
+        }
+
+        function updateHumidityChart(labels, humidityData) {
+            const ctx = document.getElementById('humidityChart').getContext('2d');
+
+            if (humidChartInstance !== null) {
+                humidChartInstance.destroy();
+                humidChartInstance = null;
+            }
+
+            humidChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Độ ẩm (%)',
+                            data: humidityData,
+                            borderColor: 'blue',
+                            backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: false,
+                            title: { display: true, text: '%' },
+                            ticks: { color: 'blue' }
+                        },
+                        x: { display: false } // Hide x-axis labels to save space
+                    },
+                    plugins: {
+                        legend: { display: false } // Hide legend as it's redundant
+                    }
+                }
+            });
+        }
+
+        function updateLightChart(labels, lightData) {
+            const ctx = document.getElementById('lightChart').getContext('2d');
+
+            if (lightChartInstance !== null) {
+                lightChartInstance.destroy();
+                lightChartInstance = null;
+            }
+
+            lightChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ánh sáng (lx)',
+                            data: lightData,
+                            borderColor: 'yellow',
+                            backgroundColor: 'rgba(255, 255, 0, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: false,
+                            title: { display: true, text: 'lx' },
+                            ticks: { color: 'yellow' }
+                        },
+                        x: { display: false } // Hide x-axis labels to save space
+                    },
+                    plugins: {
+                        legend: { display: false } // Hide legend as it's redundant
                     }
                 }
             });
@@ -378,8 +585,8 @@
         loadDevices();
 
         // Cập nhật dữ liệu định kỳ
-        setInterval(fetchSensorData, 5000); // Cập nhật cảm biến mỗi 5 giây
-        setInterval(fetchData, 5000);       // Cập nhật biểu đồ mỗi 5 giây
+        setInterval(fetchSensorData, 2000); // Cập nhật cảm biến mỗi 2 giây
+        setInterval(fetchData, 2000);       // Kiểm tra dữ liệu mới mỗi 2 giây
         setInterval(loadDevices, 10000);    // Cập nhật thiết bị mỗi 10 giây
     </script>
 </body>
