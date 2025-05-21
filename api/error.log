@@ -84,3 +84,5 @@
 [21-May-2025 15:35:05 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED2':'OFF'}, Device: Light2
 [21-May-2025 16:07:01 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}, Device: Light1
 [21-May-2025 16:07:03 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}, Device: Light1
+[21-May-2025 16:44:18 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'ON'}, Device: Light1
+[21-May-2025 16:44:45 UTC] Publishing MQTT message - Topic: home/light1, Payload: {'LED1':'OFF'}, Device: Light1

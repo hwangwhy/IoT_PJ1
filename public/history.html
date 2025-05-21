@@ -26,6 +26,7 @@
         body {
             background-color: #1e1e1e;
             color: white;
+            padding-top: 60px; /* Add padding for header */
         }
 
         .card {
@@ -54,6 +55,16 @@
             background-color: #007bff;
             color: white;
             border-radius: 4px;
+        }
+        
+        /* Center the header */
+        #header-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
         }
     </style>
 </head>
@@ -153,6 +164,11 @@
             .then(response => response.text())
             .then(data => {
                 document.getElementById("header-container").innerHTML = data;
+
+                let scripts = document.getElementById("header-container").getElementsByTagName("script");
+                for (let script of scripts) {
+                    eval(script.innerText);
+                }
             });
     </script>
 </body>
