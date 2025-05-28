@@ -71,7 +71,7 @@ while (true) {
     $sql = "INSERT INTO sensors (temperature, humidity, light, wind_speed) VALUES ('$temperature', '$humidity', '$light', '$wind_speed')";
     $conn->query($sql);
 
-    echo "Added data: $temperature°C, $humidity%, $light lx, $wind_speed m/s\n";
+    echo "Added data: " . $temperature . "°C, " . $humidity . "%, " . $light . " lx, " . $wind_speed . " m/s\n";
     
     // Publish sensor data to MQTT
     if (isset($mqtt) && $mqtt->isConnected()) {
@@ -108,13 +108,13 @@ while (true) {
             
             // Add alerts for when thresholds are exceeded
             if ($temperature > 30.0) {
-                echo "🔴 ALERT: Temperature above 30°C - D4 LED should be blinking!\n";
+                echo "ALERT: Temperature above 30°C - D4 LED should be blinking!\n";
             }
             if ($humidity > 50.0) {
-                echo "🔵 ALERT: Humidity above 50% - D5 LED should be blinking!\n";
+                echo "ALERT: Humidity above 50% - D5 LED should be blinking!\n";
             }
             if ($light > 400) {
-                echo "☀️ ALERT: Light above 400 lx - D6 LED should be blinking!\n";
+                echo "ALERT: Light above 400 lx - D6 LED should be blinking!\n";
             }
         } catch (Exception $e) {
             echo "MQTT publish error: " . $e->getMessage() . "\n";

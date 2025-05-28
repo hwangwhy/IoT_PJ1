@@ -272,25 +272,48 @@
                 }
             });
 
+        // Track when each device was last toggled by user
+        const lastToggleTime = {};
+        const TOGGLE_COOLDOWN_MS = 5000; // 5 seconds protection from auto-refresh
+
         async function loadDevices() {
             try {
                 let response = await fetch("../api/get_devices.php");
                 let data = await response.json();
 
                 let deviceContainer = document.getElementById("deviceControls");
+                let existingToggles = {};
+                
+                // Store existing toggle states before wiping the container
+                document.querySelectorAll(".toggle").forEach(toggle => {
+                    const deviceId = toggle.getAttribute("data-id");
+                    existingToggles[deviceId] = toggle.checked;
+                });
+                
                 deviceContainer.innerHTML = "";
 
                 data.forEach(device => {
-                    let checked = device.status == 1 ? "checked" : "";
-                    let bulbClass = device.status == 1 ? "bulb-on" : "bulb-off";
+                    const deviceId = device.id;
+                    // Use server status unless device was recently toggled by user
+                    let isChecked = device.status == 1;
+                    
+                    const now = Date.now();
+                    if (lastToggleTime[deviceId] && (now - lastToggleTime[deviceId] < TOGGLE_COOLDOWN_MS)) {
+                        // Use the existing state instead of server state
+                        isChecked = existingToggles[deviceId] !== undefined ? existingToggles[deviceId] : isChecked;
+                    }
+                    
+                    let checked = isChecked ? "checked" : "";
+                    let bulbClass = isChecked ? "bulb-on" : "bulb-off";
+                    
                     let col = document.createElement("div");
                     col.className = "col-md-3";
                     col.innerHTML = `
                         <div class="card p-3 text-center">
-                            <i class="fas fa-lightbulb bulb-icon ${bulbClass}" id="bulb-${device.id}"></i>
+                            <i class="fas fa-lightbulb bulb-icon ${bulbClass}" id="bulb-${deviceId}"></i>
                             <h5>${device.name}</h5>
                             <label class="switch">
-                                <input type="checkbox" class="toggle" data-id="${device.id}" ${checked}>
+                                <input type="checkbox" class="toggle" data-id="${deviceId}" ${checked}>
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -303,6 +326,12 @@
                         let deviceId = this.getAttribute("data-id");
                         let status = this.checked ? 1 : 0;
                         this.disabled = true; // Disable toggle during request
+                        
+                        // Record when this device was toggled by user
+                        lastToggleTime[deviceId] = Date.now();
+                        
+                        // Save the current state to restore if the request fails
+                        const initialState = this.checked;
                         
                         // Update bulb icon immediately for responsive UI, but keep it in a pending state
                         const bulbIcon = document.getElementById(`bulb-${deviceId}`);
@@ -329,11 +358,11 @@
                             let result = await response.json();
                             if (!result.success) {
                                 // Error occurred, revert UI
-                                this.checked = !status;
+                                this.checked = !this.checked;
                                 alert("Lỗi khi cập nhật thiết bị: " + (result.error || "Không xác định"));
                             } else {
                                 // Success - now update the UI to reflect the change
-                                if (status === 1) {
+                                if (this.checked) {
                                     bulbIcon.classList.remove("bulb-off");
                                     bulbIcon.classList.add("bulb-on");
                                 } else {
@@ -344,7 +373,7 @@
                             
                         } catch (error) {
                             // Revert toggle on error
-                            this.checked = !status;
+                            this.checked = !this.checked;
                             console.error("Lỗi khi gửi yêu cầu: ", error);
                             alert("Lỗi kết nối đến máy chủ: " + error.message);
                         } finally {
@@ -579,15 +608,15 @@
             });
         }
 
-        // Gọi các hàm lần đầu khi trang tải
+      
         fetchSensorData();
         fetchData();
         loadDevices();
 
-        // Cập nhật dữ liệu định kỳ
-        setInterval(fetchSensorData, 2000); // Cập nhật cảm biến mỗi 2 giây
-        setInterval(fetchData, 2000);       // Kiểm tra dữ liệu mới mỗi 2 giây
-        setInterval(loadDevices, 10000);    // Cập nhật thiết bị mỗi 10 giây
+      
+        setInterval(fetchSensorData, 2000); 
+        setInterval(fetchData, 2000);       
+        setInterval(loadDevices, 2000);   
     </script>
 </body>
 
