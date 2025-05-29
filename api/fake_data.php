@@ -61,17 +61,14 @@ if (function_exists('pcntl_signal')) {
 }
 
 while (true) {
-    
     $temperature = rand(19, 40);  
     $humidity = rand(30, 90);    
     $light = rand(100, 1000);    
-    $wind_speed = rand(0, 90);    
 
-   
-    $sql = "INSERT INTO sensors (temperature, humidity, light, wind_speed) VALUES ('$temperature', '$humidity', '$light', '$wind_speed')";
+    $sql = "INSERT INTO sensors (temperature, humidity, light) VALUES ('$temperature', '$humidity', '$light')";
     $conn->query($sql);
 
-    echo "Added data: " . $temperature . "°C, " . $humidity . "%, " . $light . " lx, " . $wind_speed . " m/s\n";
+    echo "Added data: " . $temperature . "°C, " . $humidity . "%, " . $light . " lx\n";
     
     // Publish sensor data to MQTT
     if (isset($mqtt) && $mqtt->isConnected()) {
