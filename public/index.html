@@ -161,6 +161,19 @@
             visibility: visible;
         }
 
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
         .loading-spinner {
             width: 50px;
             height: 50px;
@@ -207,7 +220,10 @@
     <div id="header-container"></div>
     <!-- Add loading overlay -->
     <div class="loading-overlay">
-        <div class="loading-spinner"></div>
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Đang chờ phản hồi từ thiết bị...</div>
+        </div>
     </div>
     <div class="container mt-4">
         <!-- Phần 1: Hiển thị thông số cảm biến -->
@@ -232,7 +248,7 @@
             </div>
         </div>
 
-        <!-- Biểu đồ riêng biệt cho từng giá trị -->
+        <!-- Biểu đồ riêng biệt biểu đồ từng giá trị -->
         <div class="row mt-4">
             <div class="col-md-4">
                 <div class="card p-3">
@@ -272,39 +288,24 @@
                 }
             });
 
-        // Track when each device was last toggled by user
-        const lastToggleTime = {};
-        const TOGGLE_COOLDOWN_MS = 5000; // 5 seconds protection from auto-refresh
-
         async function loadDevices() {
             try {
                 let response = await fetch("../api/get_devices.php");
                 let data = await response.json();
 
                 let deviceContainer = document.getElementById("deviceControls");
-                let existingToggles = {};
-                
-                // Store existing toggle states before wiping the container
-                document.querySelectorAll(".toggle").forEach(toggle => {
-                    const deviceId = toggle.getAttribute("data-id");
-                    existingToggles[deviceId] = toggle.checked;
-                });
-                
                 deviceContainer.innerHTML = "";
 
                 data.forEach(device => {
                     const deviceId = device.id;
-                    // Use server status unless device was recently toggled by user
+                    // Use status from backend API (which handles session-based state management)
                     let isChecked = device.status == 1;
-                    
-                    const now = Date.now();
-                    if (lastToggleTime[deviceId] && (now - lastToggleTime[deviceId] < TOGGLE_COOLDOWN_MS)) {
-                        // Use the existing state instead of server state
-                        isChecked = existingToggles[deviceId] !== undefined ? existingToggles[deviceId] : isChecked;
-                    }
                     
                     let checked = isChecked ? "checked" : "";
                     let bulbClass = isChecked ? "bulb-on" : "bulb-off";
+                    
+                    // Add debug info if available (commented out for clean UI)
+                    // let debugInfo = device.source ? ` (${device.source})` : '';
                     
                     let col = document.createElement("div");
                     col.className = "col-md-3";
@@ -327,24 +328,15 @@
                         let status = this.checked ? 1 : 0;
                         this.disabled = true; // Disable toggle during request
                         
-                        // Record when this device was toggled by user
-                        lastToggleTime[deviceId] = Date.now();
-                        
-                        // Save the current state to restore if the request fails
-                        const initialState = this.checked;
-                        
-                        // Update bulb icon immediately for responsive UI, but keep it in a pending state
+                        // Update bulb icon immediately for responsive UI
                         const bulbIcon = document.getElementById(`bulb-${deviceId}`);
                         
-                        // Show loading overlay
+                        // Show loading overlay with real waiting message
                         const loadingOverlay = document.querySelector('.loading-overlay');
                         loadingOverlay.classList.add('active');
                         
                         try {
-                            // Display loading animation first for better UX
-                            await new Promise(resolve => setTimeout(resolve, 800));
-                            
-                            // Now send the actual request to toggle the device
+                            // Send the request to toggle the device (waits for ESP response)
                             let response = await fetch("../api/toggle_device.php", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -361,7 +353,10 @@
                                 this.checked = !this.checked;
                                 alert("Lỗi khi cập nhật thiết bị: " + (result.error || "Không xác định"));
                             } else {
-                                // Success - now update the UI to reflect the change
+                                // Success - ESP confirmed the change
+                                console.log("ESP Response:", result.message);
+                                
+                                // Update the UI to reflect the confirmed change
                                 if (this.checked) {
                                     bulbIcon.classList.remove("bulb-off");
                                     bulbIcon.classList.add("bulb-on");
@@ -369,13 +364,18 @@
                                     bulbIcon.classList.remove("bulb-on");
                                     bulbIcon.classList.add("bulb-off");
                                 }
+                                
+                                // Force reload devices to get updated state from backend
+                                setTimeout(() => {
+                                    loadDevices();
+                                }, 100);
                             }
                             
                         } catch (error) {
                             // Revert toggle on error
                             this.checked = !this.checked;
                             console.error("Lỗi khi gửi yêu cầu: ", error);
-                            alert("Lỗi kết nối đến máy chủ: " + error.message);
+                            alert("Lỗi kết nối đến thiết bị: " + error.message);
                         } finally {
                             // Hide loading overlay
                             loadingOverlay.classList.remove('active');

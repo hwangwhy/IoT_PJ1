@@ -6,7 +6,7 @@ use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\ConnectionSettings;
 
 
-$server = '192.168.1.159';
+$server = '192.168.192.101';
 $port = 2003;
 $clientId = 'sensor_publisher_' . rand(1, 999);
 $username = 'hoanghuy';
